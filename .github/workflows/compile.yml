@@ -1,0 +1,30 @@
+name: Compile Typst & Render Preview
+
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Typst
+        uses: typst-community/setup-typst@v2
+
+      - name: Compile PDF and PNG
+        run: |
+          typst compile resume.typ resume.pdf
+          typst compile --format png --ppi 300 resume.typ resume.png
+
+      - name: Commit updated PDF and PNG
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add resume.pdf resume.png
+          git diff-index --quiet HEAD || git commit -m "auto: compile pdf and render png preview [skip ci]"
+          git push
